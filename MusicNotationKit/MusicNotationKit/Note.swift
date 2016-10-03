@@ -6,14 +6,17 @@
 //  Copyright (c) 2015 Kyle Sherman. All rights reserved.
 //
 
-public struct Note {
+public struct Note: NoteCollection {
 
+    // NoteCollection
+    public let noteCount = 1
     public let noteDuration: NoteDuration
+    public let noteTimingCount = 1
+
     public let tones: [Tone]
 
     public let isRest: Bool
 
-    public var dot: Dot?
     public var accent: Accent?
     public var isStaccato: Bool = false
     public var dynamics: Dynamics?
@@ -48,6 +51,16 @@ public struct Note {
         self.tones = tones
     }
 
+    // MARK: - Methods
+    // MARK: Public
+
+    public func note(at index: Int) throws -> Note {
+        guard index == 0 else {
+            throw NoteError.invalidNoteIndex
+        }
+        return self
+    }
+
     internal mutating func modifyTie(_ request: Tie) throws {
         // Nothing to do if it's the same value
         guard tie != request else { return }
@@ -67,7 +80,7 @@ public struct Note {
      - parameter currentTie: What part of the tie on the note the caller wants to remove. This is important if the
      note is both the beginning and end of a tie
      - throws:
-        - `NoteError.invalidRequestedTieState`
+     - `NoteError.invalidRequestedTieState`
      */
     internal mutating func removeTie(_ currentTie: Tie) throws {
         switch (currentTie, tie) {
@@ -87,27 +100,21 @@ public struct Note {
     }
 }
 
-extension Note: Equatable {}
-
-public func ==(lhs: Note, rhs: Note) -> Bool {
-    if lhs.noteDuration == rhs.noteDuration &&
-        lhs.tones == rhs.tones &&
-        lhs.isRest == rhs.isRest &&
-        lhs.dot == rhs.dot &&
-        lhs.accent == rhs.accent &&
-        lhs.isStaccato == rhs.isStaccato &&
-        lhs.dynamics == rhs.dynamics &&
-        lhs.striking == rhs.striking &&
-        lhs.tie == rhs.tie {
-        return true
-    } else {
-        return false
+extension Note: Equatable {
+    public static func ==(lhs: Note, rhs: Note) -> Bool {
+        if lhs.noteDuration == rhs.noteDuration &&
+            lhs.tones == rhs.tones &&
+            lhs.isRest == rhs.isRest &&
+            lhs.accent == rhs.accent &&
+            lhs.isStaccato == rhs.isStaccato &&
+            lhs.dynamics == rhs.dynamics &&
+            lhs.striking == rhs.striking &&
+            lhs.tie == rhs.tie {
+            return true
+        } else {
+            return false
+        }
     }
-}
-
-extension Note: NoteCollection {
-
-    public var noteCount: Int { return 1 }
 }
 
 extension Note: CustomDebugStringConvertible {
@@ -122,16 +129,11 @@ extension Note: CustomDebugStringConvertible {
                 tonesString = ""
             }
         }
-        let dotString: String
-        if let dot = dot {
-            dotString = "\(dot)"
-        } else {
-            dotString = ""
-        }
-        return "\(tie == .end || tie == .beginAndEnd ? "_" : "")\(noteDuration)\(dotString)\(tonesString)\(isRest ? "R" : "")\(tie == .begin || tie == .beginAndEnd ? "_" : "")"
+        return "\(tie == .end || tie == .beginAndEnd ? "_" : "")\(noteDuration)\(tonesString)\(isRest ? "R" : "")\(tie == .begin || tie == .beginAndEnd ? "_" : "")"
     }
 }
 
-public enum NoteError: ErrorProtocol {
+public enum NoteError: Error {
     case invalidRequestedTieState
+    case invalidNoteIndex
 }

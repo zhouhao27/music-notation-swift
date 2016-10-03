@@ -70,23 +70,31 @@ public struct MeasureRepeat {
     }
 }
 
+extension MeasureRepeat: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        let measuresDescription = measures.map { $0.debugDescription }.joined(separator: ", ")
+        
+        return "[ \(measuresDescription) ] × \(repeatCount + 1)"
+    }
+}
+
 extension MeasureRepeat: NotesHolder {
 
 }
 
-extension MeasureRepeat: Equatable {}
-
-public func ==(lhs: MeasureRepeat, rhs: MeasureRepeat) -> Bool {
-    guard lhs.repeatCount == rhs.repeatCount else {
-        return false
+extension MeasureRepeat: Equatable {
+    public static func ==(lhs: MeasureRepeat, rhs: MeasureRepeat) -> Bool {
+        guard lhs.repeatCount == rhs.repeatCount else {
+            return false
+        }
+        guard lhs.measures == rhs.measures else {
+            return false
+        }
+        return true
     }
-    guard lhs.measures == rhs.measures else {
-        return false
-    }
-    return true
 }
 
-public enum MeasureRepeatError: ErrorProtocol {
+public enum MeasureRepeatError: Error {
     case noMeasures
     case invalidRepeatCount
     case cannotModifyRepeatedMeasures
